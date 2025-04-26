@@ -1,0 +1,79 @@
+import random
+
+# Step 1: Generate 100 data points and 10 cluster centers
+width, height = 40, 20
+num_points = 100
+num_clusters = 10
+
+# Set random seed for consistency (optional)
+random.seed(42)
+
+points = [(random.randint(0, width - 1), random.randint(0, height - 1)) for _ in range(num_points)]
+clusters = [(random.randint(0, width - 1), random.randint(0, height - 1)) for _ in range(num_clusters)]
+
+# Step 2: Define Manhattan distance
+def manhattan(p1, p2):
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
+# Step 3: Assign points to nearest cluster
+def assign_clusters(points, clusters):
+    assignments = []
+    for p in points:
+        min_dist = float('inf')
+        cluster_index = 0
+        for i, c in enumerate(clusters):
+            dist = manhattan(p, c)
+            if dist < min_dist:
+                min_dist = dist
+                cluster_index = i
+        assignments.append(cluster_index)
+    return assignments
+
+# Step 4: Update cluster centers
+def update_clusters(points, assignments, k):
+    new_clusters = []
+    for i in range(k):
+        cluster_points = [p for p, a in zip(points, assignments) if a == i]
+        if cluster_points:
+            x_mean = sum(p[0] for p in cluster_points) // len(cluster_points)
+            y_mean = sum(p[1] for p in cluster_points) // len(cluster_points)
+            new_clusters.append((x_mean, y_mean))
+        else:
+            # If no points assigned to cluster, reinitialize randomly
+            new_clusters.append((random.randint(0, width - 1), random.randint(0, height - 1)))
+    return new_clusters
+
+# Step 5: Run the K-Means algorithm (5 iterations)
+for _ in range(5):
+    assignments = assign_clusters(points, clusters)
+    clusters = update_clusters(points, assignments, num_clusters)
+
+# --- Final Output ---
+
+# 1. Print Cluster Centers
+print("\n--- Cluster Centers ---")
+for idx, center in enumerate(clusters):
+    print(f"Cluster {idx} Center: {center}")
+
+# 2. Print Cluster Memberships
+print("\n--- Cluster Membership ---")
+for idx, assignment in enumerate(assignments):
+    print(f"Point {idx}: {points[idx]} -> Cluster {assignment}")
+
+# 3. Create a grid for visualization
+grid = [['.' for _ in range(width)] for _ in range(height)]
+
+# Place points first
+for p in points:
+    x, y = p
+    grid[y][x] = 'P'
+
+# Then place cluster centers (override if overlaps)
+for c in clusters:
+    x, y = c
+    grid[y][x] = 'C'
+
+# 4. Print the grid
+print("\n--- 2D Visualization ---")
+for row in grid:
+    print(''.join(row))
